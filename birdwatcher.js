@@ -122,12 +122,24 @@
     var wrapFunc;
 
     // depth limiter
-    if (depth === this.maxDepth) {
+    if (depth >= this.maxDepth) {
       return;
     }
 
     parts = name.split('.');
-    obj = eval(name);
+
+    // XXX: wip
+    var objname = parts[0];
+    for (i = 1, il = parts.length; i < il; ++i) {
+      objname += "['" + parts[i] + "']";
+      if (eval(objname) === void 0) {
+        return;
+      }
+      if (parts[i - 1] === 'prototype' && parts[i] === 'constructor') {
+        return;
+      }
+    }
+    obj = eval(objname);
 
     switch (typeof obj) {
       // function
@@ -156,8 +168,8 @@
                 if (typeof(obj.prototype[prop]) === 'function') {
                   that.wrap.call(
                     that,
-                    parts.concat(method, 'prototype').join('.') + "['" + prop + "']",
-                    depth + 1
+                    parts.concat(method, 'prototype', prop).join('.'),
+                    depth + 2
                   );
                 }
               }
@@ -229,7 +241,7 @@
       case 'object':
         if (obj !== null) {
           for (i in obj) {
-            this.wrap(parts + "['" + i + "']", depth + 1);
+            this.wrap(parts.concat(i).join('.'), depth + 1);
           }
         }
         break;
