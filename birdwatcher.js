@@ -46,20 +46,26 @@
     this.stack = [];
     /** @type {Object} callgraph object. */
     this.callgraph = {};
+    /** @type {number} max depth. */
+    this.maxDepth = 10;
   }
 
   /**
    * start profiling.
    */
-  BirdWatcher.prototype.start = function() {
+  BirdWatcher.prototype.start = function(maxDepth) {
     var target = this.target;
     /** @type {number} loop counter */
     var i;
     /** @type {number} loop limiter */
     var il;
 
+    if (typeof maxDepth === 'number') {
+      this.maxDepth = maxDepth;
+    }
+
     for (i = 0, il = target.length; i < il; ++i) {
-      this.wrap(target[i]);
+      this.wrap(target[i], 0);
     }
   };
 
@@ -92,9 +98,10 @@
 
   /**
    * wrapper.
-   * @param {string} name function name string
+   * @param {string} name function name string.
+   * @param {number} depth current depth.
    */
-  BirdWatcher.prototype.wrap = function(name) {
+  BirdWatcher.prototype.wrap = function(name, depth) {
     /** @type {*} target object */
     var obj;
     /** @type {!Array.<string>} function name string parts, divide by '.' */
@@ -113,6 +120,11 @@
     var prop;
     /** @type {function} wrapper function */
     var wrapFunc;
+
+    // depth limiter
+    if (depth === this.maxDepth) {
+      return;
+    }
 
     parts = name.split('.');
     obj = eval(name);
@@ -144,7 +156,8 @@
                 if (typeof(obj.prototype[prop]) === 'function') {
                   that.wrap.call(
                     that,
-                    parts.concat(method, 'prototype', prop).join('.')
+                    parts.concat(method, 'prototype').join('.') + "['" + prop + "']",
+                    depth + 1
                   );
                 }
               }
@@ -216,7 +229,7 @@
       case 'object':
         if (obj !== null) {
           for (i in obj) {
-            this.wrap(parts.concat(i).join('.'));
+            this.wrap(parts + "['" + i + "']", depth + 1);
           }
         }
         break;
