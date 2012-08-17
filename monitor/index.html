@@ -1,0 +1,138 @@
+<html>
+  <head>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/birdsociety.js"></script>
+    <script src="/smoothie.js"></script>
+    <script src="/main.js"></script>
+    <style>
+      tr.select {
+        background-color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>BirdSociety</h1>
+
+    <div id="list-container" style="display: none"></div>
+
+    <div id="graph-container" style="display: none">
+      <h2>Graph</h2>
+      <div>
+
+        <div style="float: left">
+          <h3>self</h2>
+          <table>
+            <tr>
+              <td style="vertical-align: top">
+                <canvas id="self-graph" width="400" height="300"></canvas>
+              </td>
+              <td>
+                <div style="height: 300px; overflow: auto;">
+                  <table id="self-legend" style="font-size: 50%; background-color: black; color: white; padding: 1em;"></table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="float: left">
+          <h3>total</h2>
+          <table>
+            <tr>
+              <td style="vertical-align: top">
+                <canvas id="total-graph" width="400" height="300"></canvas>
+              </td>
+              <td>
+                <div style="height: 300px; overflow: auto;">
+                  <table id="total-legend" style="font-size: 50%; background-color: black; color: white; padding: 1em;"></table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="float: left">
+          <h3>count</h2>
+          <table>
+            <tr>
+              <td style="vertical-align: top">
+                <canvas id="count-graph" width="400" height="300"></canvas>
+              </td>
+              <td>
+                <div style="height: 300px; overflow: auto;">
+                  <table id="count-legend" style="font-size: 50%; background-color: black; color: white; padding: 1em;"></table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+
+      <hr style="clear: both" />
+
+      <h2>Graph(Sub)</h2>
+      <div>
+
+        <div style="float: left">
+          <h3>self</h2>
+          <table>
+            <tr>
+              <td style="vertical-align: top">
+                <canvas id="self-sub-graph" width="400" height="300"></canvas>
+              </td>
+              <td>
+                <div style="height: 300px; overflow: auto;">
+                  <table id="self-sub-legend" style="font-size: 50%; background-color: black; color: white; padding: 1em;"></table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="float: left">
+          <h3>total</h2>
+          <table>
+            <tr>
+              <td style="vertical-align: top">
+                <canvas id="total-sub-graph" width="400" height="300"></canvas>
+              </td>
+              <td>
+                <div style="height: 300px; overflow: auto;">
+                  <table id="total-sub-legend" style="font-size: 50%; background-color: black; color: white; padding: 1em;"></table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="float: left">
+          <h3>count</h2>
+          <table>
+            <tr>
+              <td style="vertical-align: top">
+                <canvas id="count-sub-graph" width="400" height="300"></canvas>
+              </td>
+              <td>
+                <div style="height: 300px; overflow: auto;">
+                  <table id="count-sub-legend" style="font-size: 50%; background-color: black; color: white; padding: 1em;"></table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+      </div>
+
+      <hr style="clear: both" />
+    </div>
+
+    <div id="log-container" style="display: none">
+      <h2>Log</h2>
+
+      <input type="checkbox" id="log-scroll" /><label for="log-scroll">auto scroll</label>
+      <input type="checkbox" id="log-stop" /><label for="log-stop">stop</label>
+      <dl id="output" style="font-size: small; height: 30em; overflow: auto; background-color: black; color: white;"></dl>
+    </div>
+  </body>
+</html>
