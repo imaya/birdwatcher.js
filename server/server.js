@@ -38,7 +38,10 @@ var server = http.createServer(function(req, res) {
         console.error("invalid json:", msg);
       }
     } finally {
-      res.writeHeader(200, {'Content-Type': 'image/png'});
+      res.writeHeader(200, {
+        'Content-Type': 'image/png',
+        'Access-Control-Allow-Origin': '*'
+      });
       res.end();
     }
   // resource

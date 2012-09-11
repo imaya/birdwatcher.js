@@ -47,6 +47,7 @@ function TimeSeries(options) {
   
   this.maxValue = Number.NaN; // The maximum value ever seen in this time series.
   this.minValue = Number.NaN; // The minimum value ever seen in this time series.
+  this.maxTimestamp = Number.NaN;
 
   // Start a resetBounds Interval timer desired
   if (options.resetBounds) {
@@ -58,7 +59,9 @@ function TimeSeries(options) {
 TimeSeries.prototype.resetBounds = function() {
   this.maxValue = Number.NaN;
   this.minValue = Number.NaN;
+  this.maxTimestamp = Number.NaN;
   for (var i = 0; i < this.data.length; i++) {
+    this.maxTimestamp = !isNaN(this.maxTimestamp) ? Math.max(this.maxValue, this.data[i][0]) : this.data[i][0];
     this.maxValue = !isNaN(this.maxValue) ? Math.max(this.maxValue, this.data[i][1]) : this.data[i][1];
     this.minValue = !isNaN(this.minValue) ? Math.min(this.minValue, this.data[i][1]) : this.data[i][1];
   }
@@ -66,6 +69,7 @@ TimeSeries.prototype.resetBounds = function() {
 
 TimeSeries.prototype.append = function(timestamp, value) {
   this.data.push([timestamp, value]);
+  this.maxTimestamp = !isNaN(this.maxTimestamp) ? Math.max(this.maxTimestamp, timestamp) : timestamp;
   this.maxValue = !isNaN(this.maxValue) ? Math.max(this.maxValue, value) : value;
   this.minValue = !isNaN(this.minValue) ? Math.min(this.minValue, value) : value;
 };
@@ -96,6 +100,24 @@ SmoothieChart.prototype.removeTimeSeries = function(timeSeries) {
 	this.seriesSet.splice(this.seriesSet.indexOf(timeSeries), 1);
 };
 
+// modified by imaya.
+SmoothieChart.prototype.streamTo = function(canvas) {
+  var self = this;
+  this.render_on_tick = function() {
+    var i, il;
+    var maxTimestamp = 0;
+
+    for (i = 0, il = self.seriesSet.length; i < il; ++i) {
+      maxTimestamp = Math.max(self.seriesSet[i].timeSeries.maxTimestamp, maxTimestamp);
+    }
+
+    self.render(canvas, maxTimestamp);
+  };
+
+  this.start();
+};
+/*
+// original method
 SmoothieChart.prototype.streamTo = function(canvas, delay) {
   var self = this;
   this.render_on_tick = function() {
@@ -104,6 +126,7 @@ SmoothieChart.prototype.streamTo = function(canvas, delay) {
 
   this.start();
 };
+*/
 
 SmoothieChart.prototype.start = function() {
   if (!this.timer)

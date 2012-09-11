@@ -6,6 +6,7 @@ global.BirdSociety = BirdSociety;
  * @constructor
  */
 function BirdSociety() {
+  /** @type {SocketNamespace} */
   this.connection;
   /** @type {boolean} */
   this.connected = false;
@@ -27,7 +28,8 @@ BirdSociety.prototype.connect = function(id) {
   /** @type {string} */
   var connection;
 
-  connection = this.connection = io.connect(url)
+  connection = this.connection = io.connect(url);
+  console.log(connection);
 
   // 接続完了時
   connection.on('connect', function(){

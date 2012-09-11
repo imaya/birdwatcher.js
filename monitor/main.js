@@ -83,7 +83,7 @@ var GraphList = [
     chartSuffix: '-graph',
     legendSuffix: '-legend',
     dataFilter: createPlainData,
-    viewFilter: top30,
+    viewFilter: dummyFilter, //top30,
     trCache: {}
   },
   {
@@ -93,7 +93,7 @@ var GraphList = [
     chartSuffix: '-sub-graph',
     legendSuffix: '-sub-legend',
     dataFilter: createSubData,
-    viewFilter: top30,
+    viewFilter: dummyFilter, // top30
     trCache: {}
   }
 ];
@@ -145,13 +145,28 @@ function init(mode) {
     // モード毎の処理(1)
     switch (mode) {
       // リスト表示時には新しいグラフを作らない
-      case Mode.LIST: continue;
-    }
+      case Mode.LIST:
+        break;
+      // create new chart
+      case Mode.GRAPH:
+        for (j = 0, jl = targets.length; j < jl; ++j) {
+          target = targets[j];
+          addChart(graph.chart, target, id(target + graph.chartSuffix));
+        }
 
-    // create new chart
-    for (j = 0, jl = targets.length; j < jl; ++j) {
-      target = targets[j];
-      addChart(graph.chart, target, id(target + graph.chartSuffix));
+        // current status
+        graph.stopped = false;
+
+        // create button event
+        (function (graph) {
+          id('start' + graph.chartSuffix).addEventListener('click', function() {
+            startGraph(graph);
+          }, false);
+          id('stop' + graph.chartSuffix).addEventListener('click', function() {
+            stopGraph(graph);
+          }, false);
+        })(graph);
+        break;
     }
   }
 
@@ -193,27 +208,16 @@ function onHashChange(ev) {
 
 // onload
 document.addEventListener('DOMContentLoaded', function onload() {
-  /** @type {Array.<string>} */
-  var targets;
-  /** @type {string} */
-  var target;
-  /** @type {!Object} */
-  var graph;
   /** @type {number} */
-  var i;
+  var retry = 100;
   /** @type {number} */
-  var il;
-  /** @type {number} */
-  var j;
-  /** @type {number} */
-  var jl;
+  var timerId;
 
   // once
   document.removeEventListener('DOMContentLoaded', onload);
 
   // 接続待ち
-  var retry = 100;
-  var timerId = setTimeout(function(){
+  timerId = setTimeout(function() {
     if (!bs.connected) {
       if (--retry === 0) {
         clearTimeout(timerId);
@@ -221,10 +225,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
       return;
     }
 
-    // 接続できたら list ハンドラ
-    // XXX: ここは bs の機能にいれるか？
-   onHashChange();
-
+    onHashChange();
     clearInterval(timerId);
   }, 100);
 }, false);
@@ -259,10 +260,16 @@ var updateGraph = (function(){
     var i;
     /** @type {number} */
     var il;
+    /** @type {!Object} */
     var keys;
 
     for (i = 0, il = GraphList.length; i < il; ++i) {
       graph = GraphList[i];
+
+      if (graph.stopped) {
+        continue;
+      }
+
       data = graph.dataFilter(graph.chart, obj, prev);
 
       keys = updateTimeSeries(graph, data, date);
@@ -274,6 +281,43 @@ var updateGraph = (function(){
 })();
 
 /**
+ * start graph update.
+ * @param {!Object} graph graph.
+ */
+function startGraph(graph) {
+  /** @type {!Object} */
+  var chart = graph.chart;
+  /** @type {string} */
+  var target;
+
+  for (target in chart) {
+    chart[target].start();
+  }
+
+  // current status
+  graph.stopped = false;
+}
+
+  /**
+/**
+ * stop graph update.
+ * @param {!Object} graph graph.
+ */
+function stopGraph(graph) {
+  /** @type {!Object} */
+  var chart = graph.chart;
+  /** @type {string} */
+  var target;
+
+  for (target in chart) {
+    chart[target].stop();
+  }
+
+  // current status
+  graph.stopped = true;
+}
+
+/**
  * SmoothieChart の追加.
  * @param {!Object} graphObj graphs.
  * @param {string} target target data name.
@@ -283,7 +327,7 @@ var updateGraph = (function(){
 function addChart(graphObj, target, element) {
   graphObj[target] = new SmoothieChart({
     interpolation: 'line',
-    fps: 30,
+    fps: 1,
     millisPerPixel: 100,
     scaleSmoothing: 0, // ??
     maxValueScale: 1.1,
@@ -472,7 +516,7 @@ function appendData(element, sortedKeys, graph, data, target) {
       tr.addEventListener('mouseover', onMouseOver, false);
       tr.dispose = function() {
         this.removeEventListener('mouseover', onMouseOver);
-      }
+      };
       element.appendChild(tr);
 
       graph.trCache[target][prop] = tr;
@@ -563,6 +607,9 @@ function updateLog(data) {
   }
 }
 
+function dummyFilter(graph, data) {
+  return topFilter(graph, data, Infinity);
+}
 /**
  * 上位 30 件フィルタ
  * @param {!Object} graph graph data object.
@@ -628,9 +675,9 @@ function hsv2rgba(h, s, v, a) {
   /** @type {number} @const */
   var m = h % 360;
   /** @type {number} @const */
-  var i = h / 60 | 0;
+  var i = m / 60 | 0;
   /** @type {number} @const */
-  var f = h / 60 - i;
+  var f = m / 60 - i;
   /** @type {number} @const */
   var p = v * (1 - s);
   /** @type {number} @const */

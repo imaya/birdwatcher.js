@@ -51,7 +51,7 @@ var NativeConsoleFunction = {
 function BirdWatcher(target) {
   /** @type {Array.<string>} target function/object string list. */
   this.target = target;
-  /** @type {Obejct} wrapped function list */
+  /** @type {Object} wrapped function list */
   this.wrapped = {};
   /** @type {Object} source function list */
   this.source = {};
@@ -67,6 +67,8 @@ function BirdWatcher(target) {
   this.reportUrl;
   /** @type {string} */
   this.reportId;
+  /** @type {string} 'img'(default) or 'xhr' */
+  this.sendMethod = 'img';
 }
 
 /**
@@ -93,6 +95,7 @@ BirdWatcher.prototype.start = function(opt_maxDepth) {
  * stop profiling.
  */
 BirdWatcher.prototype.stop = function() {
+  /** @type {Object} */
   var wrapped = this.wrapped;
   /** @type {Array.<string>} function name parts */
   var parts;
@@ -100,7 +103,7 @@ BirdWatcher.prototype.stop = function() {
   var method;
   /** @type {*} parent object */
   var parent;
-  /** @type {number} wrapped function name */
+  /** @type {string} wrapped function name */
   var i;
 
   // Object.keys 実装以前の処理系に対応するため for-in でまわす
@@ -118,7 +121,7 @@ BirdWatcher.prototype.stop = function() {
 
 /**
  * wrapper.
- * @param {string} name function name parts.
+ * @param {string} parts function name parts.
  * @param {number} depth current depth.
  */
 BirdWatcher.prototype.wrap = function(parts, depth) {
@@ -222,7 +225,7 @@ BirdWatcher.prototype.wrap = function(parts, depth) {
             /** @type {Object} callgraph */
             var callgraph = that.callgraph;
 
-            //- benchmarks -----------------------;-------------------------
+            //- benchmarks ------------------------------------------------
             stack.push(name);
 
             // 現在時刻取得を利用できるものの中から高精度、高速なものを選択.
@@ -459,22 +462,28 @@ BirdWatcher.prototype.reportString = function(wrapped) {
  * @param {string} url socket.io url string.
  * @param {Object} obj message object.
  */
-BirdWatcher.prototype.send =(function() {
+BirdWatcher.prototype.send = (function() {
   /** @type {number} */
   var requestId = 0;
 
-  return function(url, obj) {
-    /** @type {number} retry counter. */
-    var retry = 0;
-    /** @type {number} retry timer id. */
-    var timer;
-    /** @type {HTMLImageElement} dummy image element. */
-    var img = document.createElement('img');
-    /** @type {number} timer id. */
-    var timer;
+  return function() {
+    switch (this.sendMethod) {
+      case 'xhr':
+        sendByXHR.apply(this, arguments);
+        break;
+      case 'img': /* FALLTHROUGH */
+      default:
+        sendByImg.apply(this, arguments);
+        break;
+    }
+  };
 
-    img.style.display = 'none';
-    img.src = [
+  /**
+   * @param {string} url socket.io url string.
+   * @param {Object} obj message object.
+   */
+  function createRequestURL(url, obj) {
+    return [
       url,
       url.charAt(url.length - 1) !== '/' ? '/' : '',
       '?',
@@ -484,6 +493,23 @@ BirdWatcher.prototype.send =(function() {
       '&',
       JSON.stringify(obj)
     ].join('');
+  }
+
+  /**
+   * @param {string} url socket.io url string.
+   * @param {Object} obj message object.
+   */
+  function sendByImg(url, obj) {
+    /** @type {number} retry counter. */
+    var retry = 0;
+    /** @type {number} retry timer id. */
+    var timer;
+    /** @type {HTMLImageElement} dummy image element. */
+    var img = document.createElement('img');
+
+    img.style.display = 'none';
+    img.src = createRequestURL(url, obj);
+
     document.body.appendChild(img);
 
     // 100ms ごと img 要素の削除を試行する(10回までリトライ)
@@ -497,7 +523,19 @@ BirdWatcher.prototype.send =(function() {
       }
       clearInterval(timer);
     }, 100);
-  };
+  }
+
+  /**
+   * @param {string} url socket.io url string.
+   * @param {Object} obj message object.
+   */
+   function sendByXHR(url, obj) {
+    /** @type {XMLHttpRequest} */
+    var xhr = new XMLHttpRequest();
+
+    xhr.open('GET', createRequestURL(url, obj), true);
+    xhr.send();
+  }
 })();
 
 /**
