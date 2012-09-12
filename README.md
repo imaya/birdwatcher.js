@@ -47,8 +47,8 @@ BirdWatcher サーバにプロファイル結果を送信します。
         ]);
 
         // remote server settings
-        bw.reportId = 'hoge'; // レポート識別子
-        bw.reportUrl = 'http://(birdwatcher server):3000/';
+        birdwatcher.reportId = 'hoge'; // レポート識別子
+        birdwatcher.reportUrl = 'http://(birdwatcher server):3000/';
 
         // start profiling
         birdwatcher.start();
@@ -74,7 +74,7 @@ BirdWatcher サーバにプロファイル結果を送信します。
 一つの受信サーバで同じページのプロファイリングを複数行いたい場合は、
 たとえば以下のように <code>reportId</code> に現在日時をいれるなどして区別すると良いかもしれません。
 
-    bw.reportId = 'hoge-' + (Date.now ? Date.now() : +new Date()); // レポート識別子
+    birdwatcher.reportId = 'hoge-' + (Date.now ? Date.now() : +new Date()); // レポート識別子
 
 
 プロファイルの仕組み
