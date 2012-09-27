@@ -66,6 +66,7 @@ function id(identifier) { return document.getElementById(identifier); }
 var Config = {
   DefaultLineWidth: 1,
   StrongLineWidth: 5,
+  LogScrollCheckboxId: 'log-scroll',
   LogStopCheckboxId: 'log-stop',
   LogLines: 1000
 };
@@ -599,6 +600,10 @@ function updateLog(data) {
   // 3 = now + type + json
   while (output.childNodes.length > Config.LogLines * 3) {
     output.removeChild(output.firstChild);
+  }
+
+  if (id(Config.LogScrollCheckboxId).checked) {
+    output.scrollTop = output.scrollHeight;
   }
 }
 
