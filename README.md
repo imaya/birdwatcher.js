@@ -59,7 +59,7 @@ BirdWatcher サーバにプロファイル結果を送信します。
         }, 1000);
     </script>
 
-#### Log
+#### Monitor
 
 上記の例では、以下の URL にアクセスするとリモートサーバで受信しているログの一覧が表示されます。
 
@@ -69,12 +69,34 @@ BirdWatcher サーバにプロファイル結果を送信します。
 
     http://(birdwatcher server):3000/#hoge
 
+
+#### Remote Log
+
+BirdWatcher はリモートプロファイラですが、console.log, console.warn, console.error をリモートに飛ばすことも出来ます。
+リモートログ機能を有効にするには、以下のように enableRemoteLog メソッドを呼ぶだけです。
+
+    birdwatcher.enableRemoteLog();
+
+これでプロファイルと同様にログも見る事ができるようになります。
+
+
 #### その他
+
+##### reportId がかぶってログが見にくい
 
 一つの受信サーバで同じページのプロファイリングを複数行いたい場合は、
 たとえば以下のように <code>reportId</code> に現在日時をいれるなどして区別すると良いかもしれません。
 
     birdwatcher.reportId = 'hoge-' + (Date.now ? Date.now() : +new Date()); // レポート識別子
+
+##### ログの送信方法を変更したい
+
+BirdWatcher では img 要素を生成して body に追加することでサーバに GET リクエストを送っています。
+要素の生成と追加を行いたくない場合は XMLHttpRequest で送る事も可能です。
+
+    birdwatcher.sendMethod = 'xhr'; // 'img' or 'xhr'
+
+これで XMLHttpRequest を使った GET リクエストでサーバにデータが送信されます。
 
 
 プロファイルの仕組み
