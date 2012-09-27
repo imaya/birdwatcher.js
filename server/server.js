@@ -102,7 +102,7 @@ io.sockets.on('connection', function(socket){
 // channel
 //-----------------------------------------------------------------------------
 var channels = {};
-var channelTimeout = 10000;
+var channelTimeout = 60 * 1000;
 function createChannel(channel) {
   channels[channel] = setTimeout(function() {
     delete channels[channel];
