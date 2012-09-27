@@ -67,8 +67,7 @@ var Config = {
   DefaultLineWidth: 1,
   StrongLineWidth: 5,
   LogStopCheckboxId: 'log-stop',
-  LogScrollCheckboxId: 'log-scroll',
-  LogLines: 5, // XXX: 暫定
+  LogLines: 1000
 };
 
 /**
@@ -600,10 +599,6 @@ function updateLog(data) {
   // 3 = now + type + json
   while (output.childNodes.length > Config.LogLines * 3) {
     output.removeChild(output.firstChild);
-  }
-
-  if (id(Config.LogScrollCheckboxId).checked) {
-    now.scrollIntoView(true);
   }
 }
 
