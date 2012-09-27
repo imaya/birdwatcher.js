@@ -491,7 +491,7 @@ BirdWatcher.prototype.send = (function() {
       '+',
       requestId++,
       '&',
-      JSON.stringify(obj)
+      escape(JSON.stringify(obj))
     ].join('');
   }
 
