@@ -190,6 +190,11 @@ BirdWatcher.prototype.wrap = function(parts, depth) {
 
         this.callgraph[name] = {};
 
+        // avoid native method
+        if (parent[method].apply === void 0) {
+          break;
+        }
+
         // constructor
         parent[method] = (function(name) {
           // prototype wrapper
