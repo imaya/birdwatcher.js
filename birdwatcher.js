@@ -28,8 +28,14 @@
  */
 (function (global) {
 
+/** @const @type {boolean} */
+var USE_ECMA5 = !!Object.getOwnPropertyDescriptor;
+
 /** @define {string} profiler function name */
 var name = 'BirdWatcher';
+
+/** @type {function} */
+var getPropDesc = Object.getOwnPropertyDescriptor;
 
 this[name] = BirdWatcher;
 
@@ -188,6 +194,11 @@ BirdWatcher.prototype.wrap = function(parts, depth) {
         parent[method] = (function(name) {
           // prototype wrapper
           for (prop in obj.prototype) {
+            if (USE_ECMA5) {
+              if (typeof getPropDesc(obj.prototype, prop).get === 'function') {
+                continue;
+              }
+            }
             if (typeof(obj.prototype[prop]) === 'function') {
               that.wrap.call(
                 that,
