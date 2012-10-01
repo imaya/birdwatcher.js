@@ -66,6 +66,7 @@ function id(identifier) { return document.getElementById(identifier); }
 var Config = {
   DefaultLineWidth: 1,
   StrongLineWidth: 5,
+  Lines: 30,
   LogScrollCheckboxId: 'log-scroll',
   LogStopCheckboxId: 'log-stop',
   LogLines: 1000
@@ -125,6 +126,11 @@ function init(mode) {
     graph = GraphList[i];
     graph.line = {};
     graph.trCache = {};
+    graph.viewFilter = (function(num) {
+      return function() {
+        return topFilter(arguments[0], arguments[1], num);
+      };
+    })(Config.Lines);
 
     targets = graph.target;
 
@@ -188,6 +194,9 @@ function init(mode) {
 // hashchange handler
 window.addEventListener('hashchange', onHashChange, false);
 function onHashChange(ev) {
+  if (location.pathname.length > 1) {
+    Config.Lines = +location.pathname.slice(1);
+  }
   if (location.hash.length > 1) {
     join(location.hash.slice(1));
     init(Mode.GRAPH);
@@ -327,7 +336,7 @@ function stopGraph(graph) {
 function addChart(graphObj, target, element) {
   graphObj[target] = new SmoothieChart({
     interpolation: 'line',
-    fps: 1,
+    fps: 5,
     millisPerPixel: 100,
     scaleSmoothing: 0, // ??
     maxValueScale: 1.1,
@@ -433,19 +442,44 @@ function updateLegend(graph, data, display) {
   var suffix = graph.legendSuffix;
   /** @type {string} */
   var target;
-  /** @type {Array.<string>} */
-  var sortedKeys;
   /** @type {HTMLTableElement} */
   var element;
 
   for (target in chart) {
     element = id(target + suffix);
 
-    while (element.childNodes.length > 0) {
-      element.removeChild(element.firstChild);
-    }
-
+    updateDataTable(element, display[target].length);
     appendData(element, display[target], graph, data, target);
+  }
+}
+
+function updateDataTable(element, num) {
+  var tr;
+  var td;
+
+  if (element.childNodes.length === num) {
+    return;
+  }
+
+  while (element.childNodes.length < num) {
+    tr = document.createElement('tr');
+
+    td = document.createElement('td');
+    td.style.width = '1em';
+    tr.appendChild(td);
+
+    td = document.createElement('td');
+    tr.appendChild(td);
+
+    td = document.createElement('td');
+    td.style.textAlign = 'right';
+    tr.appendChild(td);
+
+    element.appendChild(tr);
+  }
+
+  while (element.childNodes.length > num) {
+    element.removeChild(element.firstChild);
   }
 }
 
@@ -475,52 +509,33 @@ function appendData(element, sortedKeys, graph, data, target) {
   /** @type {HTMLElement} */
   var td;
 
-  for (i = 0, il = sortedKeys.length; i < il; ++i) {
+  for (i = 0, il = element.childNodes.length; i < il; ++i) {
     prop = sortedKeys[i];
     color = map[prop].lineColor;
 
-    if (!graph.trCache[target]) {
-      graph.trCache[target] = {};
+    tr = element.childNodes[i];
+    tr.setAttribute('data-target-name', target);
+    tr.setAttribute('data-property-name', prop);
+
+    var values = tr.getElementsByTagName('td');
+    values[0].style.backgroundColor = color;
+    values[1].textContent = prop;
+    values[2].textContent = (data[prop][target] * 100 + 0.5 | 0) / 100;
+
+    // set event listener
+    if (tr.dispose !== void 0) {
+      tr.dispose();
     }
+    function onMouseOver(ev) {
+      var target = this.getAttribute('data-target-name');
+      var prop = this.getAttribute('data-property-name');
 
-    if (graph.trCache[target][prop] instanceof HTMLElement) {
-      tr = graph.trCache[target][prop];
-      tr.lastChild.textContent = (data[prop][target] * 100 + 0.5 | 0) / 100;
-      element.appendChild(tr);
-    } else {
-      tr = document.createElement('tr');
-      tr.setAttribute('data-target-name', target);
-      tr.setAttribute('data-property-name', prop);
-
-      td = document.createElement('td');
-      td.style.width = '1em';
-      td.style.backgroundColor = color;
-      tr.appendChild(td);
-
-      td = document.createElement('td');
-      td.textContent = prop;
-      tr.appendChild(td);
-
-      td = document.createElement('td');
-      td.textContent = (data[prop][target] * 100 + 0.5 | 0) / 100;
-      td.style.textAlign = 'right';
-      tr.appendChild(td);
-
-      function onMouseOver(ev) {
-        var target = this.getAttribute('data-target-name');
-        var prop = this.getAttribute('data-property-name');
-
-        LineHighlight(this, map[prop][target].option);
-      }
-
-      tr.addEventListener('mouseover', onMouseOver, false);
-      tr.dispose = function() {
-        this.removeEventListener('mouseover', onMouseOver);
-      };
-      element.appendChild(tr);
-
-      graph.trCache[target][prop] = tr;
+      LineHighlight(this, map[prop][target].option);
     }
+    tr.addEventListener('mouseover', onMouseOver, false);
+    tr.dispose = function() {
+      this.removeEventListener('mouseover', onMouseOver);
+    };
   }
 }
 
