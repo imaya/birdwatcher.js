@@ -149,6 +149,8 @@ BirdWatcher.prototype.wrap = function(parts, depth) {
   var prop;
   /** @type {function} wrapper function */
   var wrapFunc;
+  /** @type {Object} property descriptor */
+  var propDesc;
 
   // depth limiter
   if (depth >= this.maxDepth) {
@@ -200,7 +202,8 @@ BirdWatcher.prototype.wrap = function(parts, depth) {
           // prototype wrapper
           for (prop in obj.prototype) {
             if (USE_ECMA5) {
-              if (typeof getPropDesc(obj.prototype, prop).get === 'function') {
+              propDesc = getPropDesc(obj.prototype, prop);
+              if (propDesc && typeof propDesc.get === 'function') {
                 continue;
               }
             }
