@@ -69,6 +69,11 @@ BirdWatcher サーバにプロファイル結果を送信します。
 
     http://(birdwatcher server):3000/#hoge
 
+また、デフォルトでは上位 30 位までの表示ですが、この値を変更したいにはパスを以下のように変更します。
+
+    http://(birdwatcher server):3000/50#hoge
+
+この例では 50 件の表示になります。
 
 #### Remote Log
 
