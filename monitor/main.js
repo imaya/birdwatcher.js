@@ -226,10 +226,11 @@ document.addEventListener('DOMContentLoaded', function onload() {
   document.removeEventListener('DOMContentLoaded', onload);
 
   // 接続待ち
-  timerId = setTimeout(function() {
+  timerId = setInterval(function() {
     if (!bs.connected) {
       if (--retry === 0) {
-        clearTimeout(timerId);
+        console.log("connection failed");
+        clearInterval(timerId);
       }
       return;
     }
