@@ -663,6 +663,8 @@ function topFilter(graph, data, n) {
     sortedKeys = Object.keys(data).sort(function(a, b) {
       return data[a][target] > data[b][target] ? -1
            : data[a][target] < data[b][target] ?  1
+           : graph.line[a][target].maxValue > graph.line[b][target].maxValue ? -1
+           : graph.line[a][target].maxValue < graph.line[b][target].maxValue ?  1
            : 0;
     });
 
