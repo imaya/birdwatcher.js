@@ -43,10 +43,14 @@ this[name] = BirdWatcher;
  * @type {!{log: function, warn: function, error: function}}
  * @const
  */
-var NativeConsoleFunction = {
+var NativeConsoleFunction = global.console ? {
   log: console.log,
   warn: console.warn,
   error: console.error
+} : {
+  log: function() {},
+  warn: function() {},
+  error: function() {}
 };
 
 /**
