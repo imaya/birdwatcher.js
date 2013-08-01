@@ -11,42 +11,32 @@ var socketIo = require('socket.io');
 //-----------------------------------------------------------------------------
 var server = http.createServer(function(req, res) {
   var read;
-  var msg;
-  var obj;
-  var param;
+  var body;
 
   // default header
   res.writeHeader(200, {'Content-Type': 'text/html'});
 
   // data
   if (req.url.indexOf('/?') === 0) {
-    try {
-      param = req.url.substring(2).split('&', 2);
-      msg = unescape(param[1]);
-      try {
-        obj = JSON.parse(msg);
-        if (typeof obj.id !== 'string' || typeof obj.data !== 'object') {
-          throw new Error('invalid json');
-        }
-
-        // update channel list
-        updateChannel(obj.id);
-
-        // update log data
-        io.sockets.in(obj.id).emit('update', obj.data)
-      } catch(e) {
-        console.error("invalid json:", msg);
-      }
-    } finally {
-      res.writeHeader(200, {
-        'Content-Type': 'image/png',
-        'Access-Control-Allow-Origin': '*'
-      });
-      res.end();
+    switch (req.method) {
+      case 'GET':
+        handleParam(res, req.url.substring(2).split('&', 2)[1]);
+        break;
+      case 'POST':
+        body = '';
+        req.on('data', function (data) {
+          body += data;
+        });
+        req.on('end',function(){
+          console.log('body:', body);
+          handleParam(res, body);
+        });
+        break;
     }
   // resource
   } else {
     switch (req.url) {
+      case '/navigation_timing.js':
       case '/birdsociety.js':
       case '/smoothie.js':
       case '/main.js':
@@ -70,6 +60,35 @@ var server = http.createServer(function(req, res) {
     });
   }
 });
+
+function handleParam(res, param) {
+  var msg = unescape(param);
+  var obj;
+
+  try {
+    try {
+      obj = JSON.parse(msg);
+      if (typeof obj.id !== 'string' || typeof obj.data !== 'object') {
+        throw new Error('invalid json');
+      }
+
+      // update channel list
+      updateChannel(obj.id);
+
+      // update log data
+      io.sockets.in(obj.id).emit('update', obj.data)
+    } catch(e) {
+      console.error("invalid json:", msg);
+    }
+  } finally {
+    res.writeHeader(200, {
+      'Content-Type': 'image/png',
+      'Access-Control-Allow-Origin': '*'
+    });
+    res.end();
+  }
+}
+
 server.listen(config.Port);
 
 //-----------------------------------------------------------------------------

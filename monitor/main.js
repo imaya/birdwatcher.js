@@ -22,6 +22,9 @@ bs.update = function(received) {
     case 'callgraph':
       // XXX
       break;
+    case 'performance-timing':
+      updateTiming(received.message);
+      break;
     default:
       throw new Error('unknown data type:' + received.message.type);
   }
@@ -180,12 +183,14 @@ function init(mode) {
   switch (mode) {
     case Mode.GRAPH:
       id('graph-container').style.display =
-      id('log-container').style.display = 'block';
+      id('log-container').style.display =
+      id('performance-container').style.display = 'block';
       id('list-container').style.display = 'none';
       break;
     case Mode.LIST:
       id('graph-container').style.display =
-      id('log-container').style.display = 'none';
+      id('log-container').style.display =
+      id('performance-container').style.display = 'none';
       id('list-container').style.display = 'block';
       break;
   }
@@ -678,6 +683,19 @@ function topFilter(graph, data, n) {
   }
 
   return display;
+}
+
+function updateTiming(message) {
+  var data = message.data;
+  var target = document.getElementById('navigation-timing');
+
+  while (target.childNodes.length > 0) {
+    target.removeChild(target.firstChild);
+  }
+
+  target.appendChild(
+    new NavigationTimingRenderer(data).renderSVG()
+  );
 }
 
 /**

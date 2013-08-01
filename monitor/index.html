@@ -3,6 +3,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/birdsociety.js"></script>
     <script src="/smoothie.js"></script>
+    <script src="/navigation_timing.js"></script>
     <script src="/main.js"></script>
     <style>
       tr.select {
@@ -136,6 +137,11 @@
       <input type="checkbox" id="log-scroll" /><label for="log-scroll">auto scroll</label>
       <input type="checkbox" id="log-stop" /><label for="log-stop">stop</label>
       <dl id="output" style="font-size: small; height: 30em; overflow: auto; background-color: black; color: white;"></dl>
+    </div>
+
+    <div id="performance-container" style="display: none">
+      <h2>Navigation Timing</h2>
+      <div id="navigation-timing" style="border: 1px solid black; display: table"></div>
     </div>
   </body>
 </html>

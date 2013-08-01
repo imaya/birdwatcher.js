@@ -492,7 +492,10 @@ BirdWatcher.prototype.send = (function() {
   return function() {
     switch (this.sendMethod) {
       case 'xhr':
-        sendByXHR.apply(this, arguments);
+        sendByGetXHR.apply(this, arguments);
+        break;
+      case 'xhr-post':
+        sendByPostXHR.apply(this, arguments);
         break;
       case 'img': /* FALLTHROUGH */
       default:
@@ -552,12 +555,35 @@ BirdWatcher.prototype.send = (function() {
    * @param {string} url socket.io url string.
    * @param {Object} obj message object.
    */
-   function sendByXHR(url, obj) {
+  function sendByGetXHR(url, obj) {
+    sendByXHR(url, obj, false);
+  }
+
+  /**
+   * @param {string} url socket.io url string.
+   * @param {Object} obj message object.
+   */
+  function sendByPostXHR(url, obj) {
+    sendByXHR(url, obj, true);
+  }
+
+  /**
+   * @param {string} url socket.io url string.
+   * @param {Object} obj message object.
+   * @param {boolean=} opt_usePost use POST method if true.
+   */
+   function sendByXHR(url, obj, opt_usePost) {
     /** @type {XMLHttpRequest} */
     var xhr = new XMLHttpRequest();
 
-    xhr.open('GET', createRequestURL(url, obj), true);
-    xhr.send();
+    if (!opt_usePost) {
+      xhr.open('GET', createRequestURL(url, obj), true);
+      xhr.send();
+    } else {
+      xhr.open('POST', createRequestURL(url, {}), true);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.send(escape(JSON.stringify(obj)));
+    }
   }
 })();
 
@@ -594,6 +620,15 @@ BirdWatcher.prototype.reportRemote = function() {
   var now = typeof Date.now === 'function' ? Date.now() : +new Date();
   this.reportRemoteMessage({type: 'stat',      date: now, data: this.wrapped});
   this.reportRemoteMessage({type: 'callgraph', date: now, data: this.callgraph});
+};
+
+BirdWatcher.prototype.reportPerformanceTiming = function() {
+  var now;
+
+  if (performance && performance.timing) {
+    now = typeof Date.now === 'function' ? Date.now() : +new Date();
+    this.reportRemoteMessage({type: 'performance-timing', date: now, data: performance.timing});
+  }
 };
 
 BirdWatcher.prototype.enableRemoteLog = function() {

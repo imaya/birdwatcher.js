@@ -84,6 +84,14 @@ BirdWatcher はリモートプロファイラですが、console.log, console.wa
 
 これでプロファイルと同様にログも見る事ができるようになります。
 
+#### Navigation Timing
+
+リモートログの他に、Navigation Timing API のデータを飛ばす事も出来ます。
+
+    birdwatcher.reportPerformanceTiming();
+
+`BirdWatcher#reportPerformanceTiming()` メソッドでは performance.timing が存在する時だけ有効で、サポートしていない環境では無視します。
+
 
 #### その他
 
